@@ -53,8 +53,8 @@ public class LeafNode extends Node {
 		int minKey = 0;
 		int maxKey = 0;
 //		if (keys.size() != 0) {
-//			minKey = keys.get(0);
-//			maxKey = keys.get(keys.size() - 1);
+			minKey = keys.get(0);
+			maxKey = keys.get(keys.size() - 1);
 //		}
 		if (key < minKey) {
 			keys.add(0, key);

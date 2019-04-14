@@ -44,9 +44,9 @@ public class Node {
 	}
 	
 	public int nodeSanity() {
-		if(keys.size() < (Math.ceil(BPlusTree.degree/2.0) -1))
+		if(keys.size() < BPlusTree.minKeys)
 			return -1;
-		else if(keys.size() == (Math.ceil(BPlusTree.degree/2.0) -1))
+		else if(keys.size() == BPlusTree.minKeys)
 			return 0;
 		else
 			return 1;

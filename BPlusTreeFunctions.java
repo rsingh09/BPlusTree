@@ -49,6 +49,8 @@ public class BPlusTreeFunctions {
 						key = Integer.parseInt(a[0]);
 						output = bTree.searchInTree(key);
 					}
+					if(output == null || output == "")
+						output = "Null";
 					break;					
 				}	
 				if(output != null)
