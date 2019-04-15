@@ -18,6 +18,7 @@ public class Node {
 		keys = new ArrayList<Integer>();
 		keys.add(key);
 	}
+	
 	public void setParent(InternalNode parent) {
 		this.parent = parent;
 		for (int i = 0; i < parent.children.size(); i++) {
@@ -38,15 +39,11 @@ public class Node {
 		this.isLeafNode = isLeafNode;
 		this.keys = new ArrayList<Integer>(newkeys);
 	}
-
-	public boolean nodeOverFlow() {
-		return keys.size() > BPlusTree.degree;
-	}
 	
 	public int nodeSanity() {
 		if(keys.size() < BPlusTree.minKeys)
 			return -1;
-		else if(keys.size() == BPlusTree.minKeys)
+		else if(keys.size() >= BPlusTree.minKeys && keys.size() <= BPlusTree.degree)
 			return 0;
 		else
 			return 1;

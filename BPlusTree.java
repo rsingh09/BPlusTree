@@ -4,9 +4,10 @@ import java.util.*;
 public class BPlusTree {
 
 	/**
-	 * Degree : represents the number of children a node can have
-	 * rootNode: hold the starting key, this can be either a leaf node or index node
-	 * minKeys: this represent the minimum number of keys that have to be present in a node except root node
+	 * Degree : represents the number of children a node can have rootNode: hold the
+	 * starting key, this can be either a leaf node or index node minKeys: this
+	 * represent the minimum number of keys that have to be present in a node except
+	 * root node
 	 */
 	public static int degree;
 	public Node rootNode;
@@ -25,33 +26,34 @@ public class BPlusTree {
 	 * 
 	 */
 	public void insertInTree(Integer key, double value) {
-		//if a duplicate value is inserted return
+		// if a duplicate value is inserted return
 		if (searchInTree(key) != null) {
 			System.out.println("Duplicates Not allowed");
 			return;
 		}
-		//Initially create a leaf node
+		// Initially create a leaf node
 		LeafNode newLeaf = new LeafNode(key, value);
 		LeafkeyValPair newParent = new LeafkeyValPair(key, newLeaf);
-		//if root node is null then set the root node as leaf node 
+		// if root node is null then set the root node as leaf node
 		if (rootNode == null || rootNode.nodeSize() == 0) {
 			rootNode = newParent.getTreeNode();
 			return;
 		}
-		//try inserting in the leaf node, if a new root is created(in case of an overflow ) return root node as 
-		LeafkeyValPair childEntry = getChild(rootNode, newParent, null);
-		if (childEntry == null)
+		// try inserting in the leaf node, if a new root is created(in case of an
+		// overflow ) return root node as
+		LeafkeyValPair childcurrentKeyVal = getChild(rootNode, newParent, null);
+		if (childcurrentKeyVal == null)
 			return;
 		else {
-			InternalNode newRoot = new InternalNode(childEntry.getKey(), rootNode, childEntry.getTreeNode());
+			InternalNode newRoot = new InternalNode(childcurrentKeyVal.getKey(), rootNode, childcurrentKeyVal.getTreeNode());
 			rootNode = newRoot;
 			return;
 		}
 	}
 
 	/**
-	 * Function to search a key
-	 * Search for the exact key present in the leaf node and return the value as string
+	 * Function to search a key Search for the exact key present in the leaf node
+	 * and return the value as string
 	 */
 
 	public String searchInTree(Integer key) {
@@ -70,28 +72,29 @@ public class BPlusTree {
 		}
 		return null;
 	}
+
 	/**
-	 * Function to search for a range
-	 * Search for all the values lying between the given keys
-	 * Note: this will return values even if the exact keys are not present
+	 * Function to search for a range Search for all the values lying between the
+	 * given keys Note: this will return values even if the exact keys are not
+	 * present
 	 */
 	public String searchInTree(Integer key1, Integer key2) {
 		// Return a key or whether empty tree
 		String str = "";
-		StringBuilder searchResult = new StringBuilder();
 		if (key1 == null || key2 == null || rootNode == null) {
-			searchResult.append("");
+			return str;
 		}
 		// Find leaf node key is pointing to
 		LeafNode leaf = (LeafNode) parseTree(rootNode, key1);
 		int j = 0;
-		//get the maximum value present in the leaf
-		//Note: this is to ensure that if in a node there are keys present which are lesser then the given key
+		// get the maximum value present in the leaf
+		// Note: this is to ensure that if in a node there are keys present which are
+		// lesser then the given key
 		int maxleafValue = leaf.keys.get(leaf.keys.size() - 1);
 		while (maxleafValue >= key1 && leaf.nextLeaf != null) {
 			for (int i = 0; i < leaf.nodeSize(); i++) {
 				if (key1.compareTo(leaf.keys.get(i)) <= 0) {
-					//while the elements are lesser then the key 2
+					// while the elements are lesser then the key 2
 					while (i < leaf.nodeSize() && key2 >= leaf.keys.get(i)) {
 						if (leaf.values.size() > 0) {
 							str = str + leaf.values.get(i) + ", ";
@@ -110,20 +113,19 @@ public class BPlusTree {
 			} else {
 				j++;
 			}
-			if(leaf == null)
-				break;
-			//Calculate max value for the next leaf
-			maxleafValue = leaf.keys.get(leaf.keys.size() - 1);
+			// if(leaf == null)
+			// Calculate max value for the next leaf
+			// maxleafValue = leaf.keys.get(leaf.keys.size() - 1);
 		}
 		if (str != "") {
 			str = str.substring(0, str.length() - 2);
 		}
 		return str;
 	}
+
 	/*
-	 * Parse the tree to get the leaf node associated with the given key
-	 * takes the parent code and key to search
-	 * returns child node associate with the given key
+	 * Parse the tree to get the leaf node associated with the given key takes the
+	 * parent code and key to search returns child node associate with the given key
 	 */
 	private Node parseTree(Node node, Integer key) {
 		if (node.isLeafNode) {
@@ -132,21 +134,21 @@ public class BPlusTree {
 		// For index node
 		else {
 			InternalNode index = (InternalNode) node;
-
-			// when key < key0, return searchInTree(P0, Double)
-			if (key.compareTo(index.keys.get(0)) < 0) {
+			int minKey = index.keys.get(0);
+			int maxKey = index.keys.get(node.nodeSize() - 1);
+			// if the key is lesser then the minimum element go left
+			if (key.compareTo(minKey) < 0) {
 				return parseTree((Node) index.children.get(0), key);
 			}
-			// m is the number of entries
-			// When key >= keym, return searchInTree(Pm, Double)
-			else if (key.compareTo(index.keys.get(node.nodeSize() - 1)) >= 0) {
+			// if the key is greater then the minimum element go right
+			else if (key.compareTo(maxKey) >= 0) {
 				return parseTree((Node) index.children.get(index.children.size() - 1), key);
-			}
-			// Get i for key i <= key < key(i+1), return searchInTree(Pi, Double)
-			else {
-				// Perform linear searching
+			} else {
+				// Else find the index where the key might exist
 				for (int i = 0; i < index.nodeSize() - 1; i++) {
-					if (key.compareTo(index.keys.get(i)) >= 0 && key.compareTo(index.keys.get(i + 1)) < 0) {
+					int leftkey = index.keys.get(i);
+					int rightKey = index.keys.get(i + 1);
+					if (key.compareTo(leftkey) >= 0 && key.compareTo(rightKey) < 0) {
 						return parseTree((Node) index.children.get(i + 1), key);
 					}
 				}
@@ -155,25 +157,28 @@ public class BPlusTree {
 		}
 	}
 
-	private LeafkeyValPair getChild(Node node, LeafkeyValPair entry, LeafkeyValPair newChild) {
+	/*
+	 * Recursively parse through the tree to the insert the key value pair in the tree
+	 */
+	private LeafkeyValPair getChild(Node node, LeafkeyValPair currentKeyVal, LeafkeyValPair newChild) {
 		if (!node.isLeafNode) {
-			// Choose subtree, find i such that Ki <= entry's key value < J(i+1)
+			//
 			InternalNode index = (InternalNode) node;
 			int i = 0;
 			while (i < index.nodeSize()) {
-				if (entry.getKey().compareTo(index.keys.get(i)) < 0) {
+				if (currentKeyVal.getKey().compareTo(index.keys.get(i)) < 0) {
 					break;
 				}
 				i++;
 			}
-			// tree_insert entry is done recursively
-			newChild = getChild((Node) index.children.get(i), entry, newChild);
+			// Insertion in the tree of the new value pair created, by calling this function recursively till the leaf node is reached
+			newChild = getChild((Node) index.children.get(i), currentKeyVal, newChild);
 
-			// No child split case
+			// if inserting new key did not result in a new node
 			if (newChild == null) {
 				return null;
 			}
-			// Split child case
+			// if the node sanity is broken and leaf is split a new internal is node is created
 			else {
 				int j = 0;
 				while (j < index.nodeSize()) {
@@ -182,11 +187,9 @@ public class BPlusTree {
 					}
 					j++;
 				}
-
 				index.InsertinNode(newChild, j);
-
-				// Usual case, put new_child on it, set new_child to null, return
-				if (!index.nodeOverFlow()) {
+				// if the sanity of internal node is not broken then return null
+				if (index.nodeSanity() == 0) {
 					return null;
 				} else {
 					newChild = splitInternalNode(index);
@@ -202,15 +205,15 @@ public class BPlusTree {
 				}
 			}
 		}
-		// node pointer is a leaf node
+		// if you have reached leaf then insert in the leaf
 		else {
 			LeafNode leaf = (LeafNode) node;
-			LeafNode newLeaf = (LeafNode) entry.getTreeNode();
+			LeafNode newLeaf = (LeafNode) currentKeyVal.getTreeNode();
 
-			leaf.InsertInLeaf(entry.getKey(), newLeaf.values.get(0));
+			leaf.InsertInLeaf(currentKeyVal.getKey(), newLeaf.values.get(0));
 
-			// Usual case: leaf has space, put entry and set new_child to null and return
-			if (!leaf.nodeOverFlow()) {
+			// if the leaf sanity is not broken after insertion of the new value
+			if (leaf.nodeSanity() == 0 || leaf != rootNode) {
 				return null;
 			}
 			// Once in a while, the leaf is full
@@ -226,7 +229,7 @@ public class BPlusTree {
 		}
 	}
 
-	public LeafkeyValPair splitLeafNode(LeafNode leaf) {
+	private LeafkeyValPair splitLeafNode(LeafNode leaf) {
 		ArrayList<Integer> new_keys = new ArrayList<Integer>();
 		ArrayList<Double> newValues = new ArrayList<Double>();
 
@@ -249,21 +252,22 @@ public class BPlusTree {
 		LeafNode tmp = leaf.nextLeaf;
 		leaf.nextLeaf = rightNode;
 		leaf.nextLeaf.prevLeaf = rightNode;
-		rightNode.prevLeaf = leaf;
 		rightNode.nextLeaf = tmp;
+		rightNode.prevLeaf = leaf;
 
-		LeafkeyValPair new_child = new LeafkeyValPair(splitKey, rightNode);
+		LeafkeyValPair newChildCreated = new LeafkeyValPair(splitKey, rightNode);
 
-		return new_child;
+		return newChildCreated;
 	}
 
-	public LeafkeyValPair splitInternalNode(InternalNode index) {
+	private LeafkeyValPair splitInternalNode(InternalNode index) {
 		ArrayList<Integer> newKeys = new ArrayList<Integer>();
 		ArrayList<Node> newChildren = new ArrayList<Node>();
-		Integer splitKey = index.keys.get(degree / 2);
 		index.keys.remove(degree / 2);
+		Integer splitKey = index.keys.get(degree / 2);
 
 		newChildren.add(index.children.get(degree / 2 + 1));
+
 		index.children.remove(degree / 2 + 1);
 
 		while (index.nodeSize() > degree / 2) {
@@ -275,30 +279,30 @@ public class BPlusTree {
 
 		InternalNode rightNode = new InternalNode(newKeys, newChildren);
 		LeafkeyValPair child = new LeafkeyValPair(splitKey, rightNode);
-
 		return child;
 	}
 
-	
 	public void deleteNode(int key) {
+		// if the tree is empty or the key is not present in te tree return
 		if (rootNode == null || rootNode.nodeSize() == 0 || searchInTree(key) == null)
 			return;
 
-		int splitIndex = deleteHelper(key, rootNode, null, -1);
-		if (splitIndex != -1) {
-			rootNode.keys.remove(splitIndex);
+		int parentSplitKeyIndex = deleteNode(key, rootNode, null, -99);
+		if (parentSplitKeyIndex != -99) {
+			rootNode.keys.remove(parentSplitKeyIndex);
 			if (rootNode.keys.isEmpty()) {
 				rootNode = ((InternalNode) rootNode).children.get(0);
 			}
 		}
 
-		// if the new root is also empty, then the entire tree must be empty
+		// if the root node is empty, you have deleted all the elements
 		if (rootNode.keys.isEmpty()) {
 			rootNode = null;
 		}
 
 	}
-	private int deleteHelper(Integer key, Node child, InternalNode parent, int splitIndex) {
+
+	private int deleteNode(Integer key, Node child, InternalNode parent, int parentSplitKeyIndex) {
 		if (parent != null) {
 			child.setParent(parent);
 		}
@@ -327,13 +331,14 @@ public class BPlusTree {
 			InternalNode index = (InternalNode) child;
 
 			if (key.compareTo(index.keys.get(0)) < 0) {
-				splitIndex = deleteHelper(key, index.children.get(0), index, splitIndex);
+				parentSplitKeyIndex = deleteNode(key, index.children.get(0), index, parentSplitKeyIndex);
 			} else if (key.compareTo(index.keys.get(index.keys.size() - 1)) >= 0) {
-				splitIndex = deleteHelper(key, index.children.get(index.children.size() - 1), index, splitIndex);
+				parentSplitKeyIndex = deleteNode(key, index.children.get(index.children.size() - 1), index,
+						parentSplitKeyIndex);
 			} else {
 				for (int i = 1; i < index.keys.size(); i++) {
 					if (index.keys.get(i).compareTo(key) > 0) {
-						splitIndex = deleteHelper(key, index.children.get(i), index, splitIndex);
+						parentSplitKeyIndex = deleteNode(key, index.children.get(i), index, parentSplitKeyIndex);
 						break;
 					}
 				}
@@ -341,28 +346,30 @@ public class BPlusTree {
 		}
 
 		// delete split key and handle overflow
-		if (splitIndex != -1 && child != rootNode) {
-			child.keys.remove(splitIndex);
+		if (parentSplitKeyIndex != -99 && child != rootNode) {
+			child.keys.remove(parentSplitKeyIndex);
 			if (child.nodeSanity() < 0) {
 				if (child.getIndexInParent() == 0) {
 					InternalNode rightSibling = (InternalNode) child.getParent().children
 							.get(child.getIndexInParent() + 1);
-					splitIndex = handleIndexNodeUnderflow((InternalNode) child, rightSibling, child.getParent());
+					parentSplitKeyIndex = handleIndexNodeUnderflow(child.getParent(), (InternalNode) child,
+							rightSibling);
 				} else {
 					InternalNode leftSibling = (InternalNode) child.getParent().children
 							.get(child.getIndexInParent() - 1);
-					splitIndex = handleIndexNodeUnderflow(leftSibling, (InternalNode) child, child.getParent());
+					parentSplitKeyIndex = handleIndexNodeUnderflow(child.getParent(), leftSibling,
+							(InternalNode) child);
 				}
 			} else
-				splitIndex = -1;
+				parentSplitKeyIndex = -99;
 		}
 
-		return splitIndex;
+		return parentSplitKeyIndex;
 	}
 
 	public int handleLeafNodeUnderflow(LeafNode left, LeafNode right, InternalNode parent) {
 
-		// If redistributable
+		// If borrowing element does not results in a underflow of the leaf node
 		int totalSize = left.keys.size() + right.keys.size();
 		if (totalSize >= degree) {
 
@@ -376,22 +383,26 @@ public class BPlusTree {
 			vals.addAll(left.values);
 			vals.addAll(right.values);
 
-			int leftSize = totalSize/2;
+			int leftSize = totalSize / 2;
 
 			left.keys.clear();
 			right.keys.clear();
 			left.values.clear();
 			right.values.clear();
 
-			// Add first half keys and values into left and rest into right
+			// Add first half keys to the left node
 			left.keys.addAll(keys.subList(0, leftSize));
 			left.values.addAll(vals.subList(0, leftSize));
 
+			// Add rest of the keys to the right node
 			right.keys.addAll(keys.subList(leftSize, keys.size()));
 			right.values.addAll(vals.subList(leftSize, vals.size()));
+
+			// Update the key value in the parent node
 			parent.keys.set(childIndex - 1, parent.children.get(childIndex).keys.get(0));
 
-			return -1;
+			// in this case parent node is affected hence returning -99
+			return -99;
 		} else {
 			// remove right child
 			left.keys.addAll(right.keys);
@@ -409,23 +420,34 @@ public class BPlusTree {
 		}
 	}
 
-	int handleIndexNodeUnderflow(InternalNode left, InternalNode right, InternalNode parent) {
+	/**
+	 * This functions handles overflow of the index node, this works similar to a b
+	 * tree
+	 * 
+	 * @param left
+	 * @param right
+	 * @param parent
+	 * @return
+	 */
+	int handleIndexNodeUnderflow(InternalNode parent, InternalNode left, InternalNode right) {
 
-		int splitIndex = -1;
+		// get the index from which you need to split
+		int parentSplitKeyIndex = -99;
 		for (int i = 0; i < parent.keys.size(); i++) {
 			if (parent.children.get(i) == left && parent.children.get(i + 1) == right) {
-				splitIndex = i;
+				parentSplitKeyIndex = i;
 				break;
 			}
 		}
 
-		// Redistribute if possible
 		int totalSize = left.keys.size() + right.keys.size();
+		// if the node you are borrowing will remain sane after borrowing the element
+		// the borrow
 		if (totalSize >= degree) {
 			ArrayList<Integer> keys = new ArrayList<Integer>();
 			ArrayList<Node> children = new ArrayList<Node>();
 			keys.addAll(left.keys);
-			keys.add(parent.keys.get(splitIndex));
+			keys.add(parent.keys.get(parentSplitKeyIndex));
 			keys.addAll(right.keys);
 			children.addAll(left.children);
 			children.addAll(right.children);
@@ -435,25 +457,37 @@ public class BPlusTree {
 			if (keys.size() % 2 == 0) {
 				newIndex -= 1;
 			}
-			parent.keys.set(splitIndex, keys.get(newIndex));
+			// set the value in the parent as the max element of the left tree
+			parent.keys.set(parentSplitKeyIndex, keys.get(newIndex));
+			// Clear the current values of the left node
 
 			left.keys.clear();
-			right.keys.clear();
 			left.children.clear();
+			// Clear the current values of the right node
+
+			right.keys.clear();
 			right.children.clear();
 
+			// from the new leaf created insert all the values from 0 to half in the left
+			// child
 			left.keys.addAll(keys.subList(0, newIndex));
-			right.keys.addAll(keys.subList(newIndex + 1, keys.size()));
 			left.children.addAll(children.subList(0, newIndex + 1));
+
+			// from the new leaf created insert all the values from 0 to half in the right
+			// child
 			right.children.addAll(children.subList(newIndex + 1, children.size()));
-			return -1;
-		} else {
-			left.keys.add(parent.keys.get(splitIndex));
+			right.keys.addAll(keys.subList(newIndex + 1, keys.size()));
+			return -99;
+		}
+		// else merge the nodes and return the parent key index which needs to be
+		// removed
+		else {
+			left.keys.add(parent.keys.get(parentSplitKeyIndex));
 			left.keys.addAll(right.keys);
 			left.children.addAll(right.children);
 
 			parent.children.remove(parent.children.indexOf(right));
-			return splitIndex;
+			return parentSplitKeyIndex;
 		}
 	}
 }
