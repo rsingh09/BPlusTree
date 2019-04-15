@@ -84,39 +84,25 @@ public class BPlusTree {
 		if (key1 == null || key2 == null || rootNode == null) {
 			return str;
 		}
+		
 		// Find leaf node key is pointing to
 		LeafNode leaf = (LeafNode) parseTree(rootNode, key1);
-		int j = 0;
-		// get the maximum value present in the leaf
-		// Note: this is to ensure that if in a node there are keys present which are
-		// lesser then the given key
-		int maxleafValue = leaf.keys.get(leaf.keys.size() - 1);
-		while (maxleafValue >= key1 && leaf.nextLeaf != null) {
-			for (int i = 0; i < leaf.nodeSize(); i++) {
-				if (key1.compareTo(leaf.keys.get(i)) <= 0) {
-					// while the elements are lesser then the key 2
-					while (i < leaf.nodeSize() && key2 >= leaf.keys.get(i)) {
-						if (leaf.values.size() > 0) {
-							str = str + leaf.values.get(i) + ", ";
-						}
-						i++;
-						if (i == leaf.nodeSize() && key2.compareTo(leaf.keys.get(i - 1)) > 0) {
-							i = 0;
-							leaf = leaf.nextLeaf;
-						}
-					}
+		while(leaf != null)
+		{
+			int i = 0;
+			for(int j = 0; j< leaf.keys.size();j++)
+			{
+				int  val = leaf.keys.get(j);
+				if(val >= key1 && val <=key2 )
+				{
+					str = str + leaf.values.get(j) + ", ";
 				}
+				if (val > key2)
+					break;
 			}
-			if (j == leaf.nodeSize() - 1) {
-				leaf = leaf.nextLeaf;
-				j = 0;
-			} else {
-				j++;
-			}
-			// if(leaf == null)
-			// Calculate max value for the next leaf
-			// maxleafValue = leaf.keys.get(leaf.keys.size() - 1);
+			leaf = leaf.nextLeaf;
 		}
+	
 		if (str != "") {
 			str = str.substring(0, str.length() - 2);
 		}
